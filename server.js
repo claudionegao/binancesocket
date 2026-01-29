@@ -17,10 +17,6 @@ app.get('/saldo', (req, res) => {
 // Endpoint ping
 app.get('/ping', (req, res) => {
   console.log('Ping recebido');
-  console.log("request");
-  console.log(req);
-  console.log("response");
-  console.log(res);
   res.json({ message: 'pong' });
 });
 
