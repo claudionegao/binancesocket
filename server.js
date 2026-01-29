@@ -69,10 +69,9 @@ async function fetchBTCPrice() {
 let lastBTCPrice = null;
 setInterval(async () => {
   const btcPrice = await fetchBTCPrice();
-  console.log('Preço atual do BTC:', btcPrice);
   if (btcPrice !== null && btcPrice !== lastBTCPrice) {
     io.emit('btc_price', { price: btcPrice, timestamp: Date.now() });
-    console.log("Preço BTC enviado para clientes");
+    console.log(`Preço BTC enviado para clientes: $${btcPrice}`);
     lastBTCPrice = btcPrice;
     // Avalia regras e executa intenções
     const intencoes = avaliarRegras({
