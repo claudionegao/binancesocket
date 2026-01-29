@@ -32,21 +32,16 @@ const { Server } = require('socket.io');
 const app = express();
 app.use(express.json());
 
-let storedNumber = 0.0;
+let currency = 100.0;
 
-// Rota para obter o número armazenado
+// Endpoint para obter o saldo atual
 app.get('/saldo', (req, res) => {
-  res.json({ saldo: storedNumber });
+  res.json({ saldo: currency });
 });
 
-// Rota para atualizar o número armazenado
-app.post('/saldo', (req, res) => {
-  const { saldo } = req.body;
-  if (typeof saldo !== 'number') {
-    return res.status(400).json({ erro: 'O campo "saldo" deve ser um número.' });
-  }
-  storedNumber = parseFloat(saldo.toFixed(2));
-  res.json({ saldo: storedNumber });
+// Endpoint ping
+app.get('/ping', (req, res) => {
+  res.json({ message: 'pong' });
 });
 
 const server = http.createServer(app);
@@ -58,6 +53,22 @@ const io = new Server(server, {
 
 io.on('connection', (socket) => {
   console.log('Novo cliente conectado:', socket.id);
+
+  // Envia saldo atual ao conectar
+  socket.emit('saldo_atualizado', { saldo: currency });
+
+  // Evento para atualizar saldo
+  socket.on('atualizar_saldo', (data) => {
+    const { saldo } = data;
+    if (typeof saldo === 'number') {
+      currency = parseFloat(saldo.toFixed(2));
+      // Emite saldo atualizado para todos os clientes
+      io.emit('saldo_atualizado', { saldo: currency });
+      console.log('Saldo atualizado e enviado para clientes:', currency);
+    } else {
+      socket.emit('erro', { mensagem: 'O campo "saldo" deve ser um número.' });
+    }
+  });
 
   socket.on('disconnect', () => {
     console.log('Cliente desconectado:', socket.id);
