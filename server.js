@@ -66,20 +66,31 @@ let lastBTCPrice = null;
 setInterval(async () => {
   const btcPrice = await fetchBTCPrice();
   if (btcPrice !== null && btcPrice !== lastBTCPrice) {
+    // Atualiza o array dos últimos 5 preços
+    if (!Array.isArray(state.ultimosPrecos)) state.ultimosPrecos = [];
+    state.ultimosPrecos.push(btcPrice);
+    if (state.ultimosPrecos.length > 5) {
+      state.ultimosPrecos.shift(); // remove o mais antigo
+    }
     io.emit('btc_price', { price: btcPrice, timestamp: Date.now() });
     console.log(`Preço BTC enviado para clientes: $${btcPrice}`);
     lastBTCPrice = btcPrice;
-    // Avalia regras e executa intenções
-    const intencoes = avaliarRegras({
-      precoAtual: btcPrice,
-      saldoUSD: state.saldoUSD,
-      saldoBTC: state.saldoBTC,
-      lastTradeTime: state.lastTradeTime,
-      positions: state.positions
-    });
-    if (intencoes && intencoes.length > 0) {
-      executarIntencoes(intencoes, btcPrice);
-      io.emit('saldo_atualizado', { saldo: state.saldoUSD, saldo_btc: state.saldoBTC, positions: state.positions });
+    // Só avalia regras se já tiver 5 preços registrados
+    if (state.ultimosPrecos.length === 5) {
+      const intencoes = avaliarRegras({
+        precoAtual: btcPrice,
+        saldoUSD: state.saldoUSD,
+        saldoBTC: state.saldoBTC,
+        lastTradeTime: state.lastTradeTime,
+        positions: state.positions,
+        ultimosPrecos: state.ultimosPrecos
+      });
+      if (intencoes && intencoes.length > 0) {
+        executarIntencoes(intencoes, btcPrice);
+        io.emit('saldo_atualizado', { saldo: state.saldoUSD, saldo_btc: state.saldoBTC, positions: state.positions });
+      }
+    } else {
+      console.log(`Aguardando coletar 5 preços para liberar compras. Preços atuais:`, state.ultimosPrecos);
     }
   }
 }, 3000);
