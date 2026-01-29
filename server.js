@@ -1,4 +1,54 @@
+const { avaliarRegras } = require('./regras');
+const state = require('./state');
+const { executarIntencoes } = require('./executor');
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
 const axios = require('axios');
+
+const app = express();
+app.use(express.json());
+
+// Endpoint para obter o saldo atual (USD, BTC e posições)
+app.get('/saldo', (req, res) => {
+  res.json({ saldo: state.saldoUSD, saldo_btc: state.saldoBTC, positions: state.positions });
+});
+
+// Endpoint ping
+app.get('/ping', (req, res) => {
+  res.json({ message: 'pong' });
+});
+
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+  },
+});
+
+io.on('connection', (socket) => {
+  console.log('Novo cliente conectado:', socket.id);
+
+  // Envia saldo atual ao conectar
+  socket.emit('saldo_atualizado', { saldo: state.saldoUSD, saldo_btc: state.saldoBTC, positions: state.positions });
+
+  // Evento para atualizar saldo manualmente
+  socket.on('atualizar_saldo', (data) => {
+    const { saldo } = data;
+    if (typeof saldo === 'number') {
+      state.saldoUSD = parseFloat(saldo.toFixed(2));
+      io.emit('saldo_atualizado', { saldo: state.saldoUSD, saldo_btc: state.saldoBTC, positions: state.positions });
+      console.log('Saldo atualizado e enviado para clientes:', state.saldoUSD, state.saldoBTC);
+    } else {
+      socket.emit('erro', { mensagem: 'O campo "saldo" deve ser um número.' });
+    }
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Cliente desconectado:', socket.id);
+  });
+});
+
 // Função para buscar o preço do BTC/USDT na API da Binance
 async function fetchBTCPrice() {
   try {
@@ -19,61 +69,20 @@ setInterval(async () => {
     io.emit('btc_price', { price: btcPrice, timestamp: Date.now() });
     console.log("Preço BTC enviado para clientes");
     lastBTCPrice = btcPrice;
+    // Avalia regras e executa intenções
+    const intencoes = avaliarRegras({
+      precoAtual: btcPrice,
+      saldoUSD: state.saldoUSD,
+      saldoBTC: state.saldoBTC,
+      lastTradeTime: state.lastTradeTime,
+      positions: state.positions
+    });
+    if (intencoes && intencoes.length > 0) {
+      executarIntencoes(intencoes, btcPrice);
+      io.emit('saldo_atualizado', { saldo: state.saldoUSD, saldo_btc: state.saldoBTC, positions: state.positions });
+    }
   }
 }, 3000);
-
-// Servidor Socket.IO básico que envia ping para todos os clientes a cada 10 segundos
-
-
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-
-const app = express();
-app.use(express.json());
-
-let currency = 100.0;
-
-// Endpoint para obter o saldo atual
-app.get('/saldo', (req, res) => {
-  res.json({ saldo: currency });
-});
-
-// Endpoint ping
-app.get('/ping', (req, res) => {
-  res.json({ message: 'pong' });
-});
-
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: '*',
-  },
-});
-
-io.on('connection', (socket) => {
-  console.log('Novo cliente conectado:', socket.id);
-
-  // Envia saldo atual ao conectar
-  socket.emit('saldo_atualizado', { saldo: currency });
-
-  // Evento para atualizar saldo
-  socket.on('atualizar_saldo', (data) => {
-    const { saldo } = data;
-    if (typeof saldo === 'number') {
-      currency = parseFloat(saldo.toFixed(2));
-      // Emite saldo atualizado para todos os clientes
-      io.emit('saldo_atualizado', { saldo: currency });
-      console.log('Saldo atualizado e enviado para clientes:', currency);
-    } else {
-      socket.emit('erro', { mensagem: 'O campo "saldo" deve ser um número.' });
-    }
-  });
-
-  socket.on('disconnect', () => {
-    console.log('Cliente desconectado:', socket.id);
-  });
-});
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
