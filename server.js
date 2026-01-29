@@ -16,6 +16,7 @@ app.get('/saldo', (req, res) => {
 
 // Endpoint ping
 app.get('/ping', (req, res) => {
+  console.log('Ping recebido');
   res.json({ message: 'pong' });
 });
 
