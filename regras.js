@@ -61,9 +61,19 @@ function avaliarRegras({ precoAtual, saldoUSD, saldoBTC, lastTradeTime, position
     // Calcula a diferença percentual do preço atual para o preço do lote
     const variacao = ((precoAtual - lote.preco) / lote.preco) * 100;
     console.log(`Lote ${idx}: preço de compra = ${lote.preco}, preço atual = ${precoAtual}, variação = ${variacao.toFixed(4)}%`);
-    // Nova regra: vende 10% se variação > 0.03%
-    if (variacao > 0.03 && lote.quantidade > 0.00001) {
-      acoes.push({ type: 'SELL', percentage: 0.10, loteIndex: idx, motivo: 'variacao_0.3' });
+    // Multiplicador de venda por thresholds de variação
+    let percentage = 0;
+    if (variacao > 0.3 && variacao <= 0.5) {
+      percentage = 0.10;
+    } else if (variacao > 0.5 && variacao <= 1) {
+      percentage = 0.20;
+    } else if (variacao > 1 && variacao <= 2) {
+      percentage = 0.30;
+    } else if (variacao > 2) {
+      percentage = 0.50;
+    }
+    if (percentage > 0 && lote.quantidade > 0.00001) {
+      acoes.push({ type: 'SELL', percentage, loteIndex: idx, motivo: 'variacao_threshold' });
     }
   });
 

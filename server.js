@@ -9,9 +9,9 @@ const axios = require('axios');
 const app = express();
 app.use(express.json());
 
-// Endpoint para obter o saldo atual (USD, BTC e posições)
+// Endpoint para obter o saldo atual (USD, BTC, posições e último preço do BTC)
 app.get('/saldo', (req, res) => {
-  res.json({ saldo: state.saldoUSD, saldo_btc: state.saldoBTC, positions: state.positions });
+  res.json({ saldo: state.saldoUSD, saldo_btc: state.saldoBTC, positions: state.positions, last_btc_price: lastBTCPrice });
 });
 
 // Endpoint ping

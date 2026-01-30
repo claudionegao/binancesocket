@@ -26,7 +26,12 @@ function executarIntencoes(intencoes, precoAtual) {
       const quantidadeVenda = lote.quantidade * intencao.percentage;
       if (quantidadeVenda > 0.00000001 && precoAtual > 0) {
         lote.quantidade -= quantidadeVenda;
-        state.saldoBTC -= quantidadeVenda;
+        // Remove lote se zerado
+        if (lote.quantidade < 0.00000001) {
+          state.positions.splice(intencao.loteIndex, 1);
+        }
+        // Atualiza saldoBTC para refletir a soma dos lotes restantes
+        state.saldoBTC = state.positions.reduce((acc, l) => acc + l.quantidade, 0);
         const valorRecebido = quantidadeVenda * precoAtual;
         state.saldoUSD += valorRecebido;
         lote.lastSellTime = now;
@@ -34,10 +39,6 @@ function executarIntencoes(intencoes, precoAtual) {
         operou = true;
         const percentual = (intencao.percentage * 100).toFixed(2);
         console.log(`[PAPER] Vendido ${percentual}% do lote ${intencao.loteIndex} a $${precoAtual}, Saldo atual: $${state.saldoUSD}, Saldo BTC atual: ${state.saldoBTC}`);
-        // Remove lote se zerado
-        if (lote.quantidade < 0.00000001) {
-          state.positions.splice(intencao.loteIndex, 1);
-        }
       }
     }
   });
