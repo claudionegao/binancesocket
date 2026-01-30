@@ -7,25 +7,26 @@ const { Server } = require('socket.io');
 const axios = require('axios');
 
 const app = express();
-app.use(express.json());
-// Middleware CORS para liberar todas as origens
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://binancesocket.onrender.com');
+
+// Endpoint para obter o saldo atual (USD, BTC, posições e último preço do BTC)
+app.get('/saldo', (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
   }
-  next();
-});
-
-// Endpoint para obter o saldo atual (USD, BTC, posições e último preço do BTC)
-app.get('/saldo', (req, res) => {
   res.json({ saldo: state.saldoUSD, saldo_btc: state.saldoBTC, positions: state.positions, last_btc_price: lastBTCPrice });
 });
 
 // Endpoint ping
 app.get('/ping', (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
   console.log('Ping recebido');
   res.json({ message: 'pong' });
 });
