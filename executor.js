@@ -14,24 +14,26 @@ function executarIntencoes(intencoes, precoAtual) {
         const quantidade = valorCompra / precoAtual;
         state.saldoUSD -= valorCompra;
         state.saldoBTC += quantidade;
-        state.positions.push({ quantidade, preco: precoAtual, timestamp: Date.now() });
+        state.positions.push({ quantidade, preco: precoAtual, timestamp: Date.now(), lastSellTime: 0 });
         state.lastTradeTime = Date.now();
         operou = true;
         console.log(`[PAPER] Comprado ${quantidade} BTC a $${precoAtual}, Saldo atual: $${state.saldoUSD}, Saldo BTC atual: ${state.saldoBTC}`);
       }
     }
     if (intencao.type === 'SELL' && state.positions[intencao.loteIndex]) {
-      // Vende 5% do lote
       const lote = state.positions[intencao.loteIndex];
+      const now = Date.now();
       const quantidadeVenda = lote.quantidade * intencao.percentage;
       if (quantidadeVenda > 0.00000001 && precoAtual > 0) {
         lote.quantidade -= quantidadeVenda;
         state.saldoBTC -= quantidadeVenda;
         const valorRecebido = quantidadeVenda * precoAtual;
         state.saldoUSD += valorRecebido;
-        state.lastTradeTime = Date.now();
+        lote.lastSellTime = now;
+        state.lastTradeTime = now;
         operou = true;
-        console.log(`[PAPER] Vendido ${quantidadeVenda} BTC do lote ${intencao.loteIndex} a $${precoAtual}, Saldo atual: $${state.saldoUSD}, Saldo BTC atual: ${state.saldoBTC}`);
+        const percentual = (intencao.percentage * 100).toFixed(2);
+        console.log(`[PAPER] Vendido ${percentual}% do lote ${intencao.loteIndex} a $${precoAtual}, Saldo atual: $${state.saldoUSD}, Saldo BTC atual: ${state.saldoBTC}`);
         // Remove lote se zerado
         if (lote.quantidade < 0.00000001) {
           state.positions.splice(intencao.loteIndex, 1);

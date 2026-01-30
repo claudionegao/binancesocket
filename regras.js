@@ -7,6 +7,7 @@
 // Quantidade máxima de lotes (positions)
 const MAX_LOTES = 5;
 const MEDIA_ULTIMOS_PRECOS = 5;
+const COOLDOWN_LOTES = 60; // 1 minuto de cooldown por lote
 
 // Função para avaliar regras e retornar intenções de trade
 // Retorna: [{ type: 'BUY', ... } | { type: 'SELL', ... }] ou []
@@ -15,15 +16,11 @@ function avaliarRegras({ precoAtual, saldoUSD, saldoBTC, lastTradeTime, position
     if (Array.isArray(ultimosPrecos) && ultimosPrecos.length === MEDIA_ULTIMOS_PRECOS) {
       const soma = ultimosPrecos.reduce((acc, v) => acc + v, 0);
       const media = soma / ultimosPrecos.length;
-      const resultado = media - precoAtual;
-      console.log(`${media} - ${precoAtual} = ${resultado}`);
+      const resultado = precoAtual - media;
+      console.log(`${Number(precoAtual.toFixed(2))} - ${media.toFixed(2)} = ${Number(resultado.toFixed(2))}`);
     }
   const now = Date.now();
-  const cooldownMs = 60 * 1000; // 1 minuto de cooldown
   const acoes = [];
-  if (now - lastTradeTime < cooldownMs) {
-    return acoes; // ainda em cooldown
-  }
 
   // Regra de compra: só compra se não atingiu o máximo de lotes
   if (positions.length < MAX_LOTES) {
@@ -43,27 +40,30 @@ function avaliarRegras({ precoAtual, saldoUSD, saldoBTC, lastTradeTime, position
           console.log(`Primeira compra bloqueada: preço atual (${precoAtual}) não está acima da média (${media.toFixed(2)}) dos últimos ${MEDIA_ULTIMOS_PRECOS} preços.`);
         }
       }
-    } else if (ultimaCompra && precoAtual > ultimaCompra.preco * 1.004 && saldoUSD > 1) {
+    } else if (ultimaCompra && precoAtual > ultimaCompra.preco * 1.003 && saldoUSD > 1) {
       acoes.push({ type: 'BUY', percentage: 0.05 });
     }
   }
 
   // Regra de venda: avalia cada lote individualmente
   positions.forEach((lote, idx) => {
+    const now = Date.now();
+    const cooldownMs = COOLDOWN_LOTES * 1000; // 1 minuto de cooldown por lote
+    // Stop loss: vende 100% do lote se preço cair 0,01% abaixo do preço de compra (ignora cooldown)
+    if (precoAtual < lote.preco * 0.9999 && lote.quantidade > 0.00001) {
+      acoes.push({ type: 'SELL', percentage: 1, loteIndex: idx, stop: true });
+      return;
+    }
+    if (lote.lastSellTime && now - lote.lastSellTime < cooldownMs) {
+      // Cooldown do lote ainda não expirou, não gera intenção de venda
+      return;
+    }
     // Calcula a diferença percentual do preço atual para o preço do lote
     const variacao = ((precoAtual - lote.preco) / lote.preco) * 100;
     console.log(`Lote ${idx}: preço de compra = ${lote.preco}, preço atual = ${precoAtual}, variação = ${variacao.toFixed(4)}%`);
-    // Nova regra: vende 10% se variação > 0.3%
-    if (variacao > 0.3 && lote.quantidade > 0.00001) {
+    // Nova regra: vende 10% se variação > 0.03%
+    if (variacao > 0.03 && lote.quantidade > 0.00001) {
       acoes.push({ type: 'SELL', percentage: 0.10, loteIndex: idx, motivo: 'variacao_0.3' });
-    }
-    // Vende 10% do lote se preço subiu 0,5% desde a compra
-    if (precoAtual > lote.preco * 1.005 && lote.quantidade > 0.00001) {
-      acoes.push({ type: 'SELL', percentage: 0.10, loteIndex: idx });
-    }
-    // Stop loss: vende 100% do lote se preço cair 0,01% abaixo do preço de compra
-    if (precoAtual < lote.preco * 0.9999 && lote.quantidade > 0.00001) {
-      acoes.push({ type: 'SELL', percentage: 1, loteIndex: idx, stop: true });
     }
   });
 
