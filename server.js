@@ -16,7 +16,7 @@ app.get('/saldo', (req, res) => {
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
   }
-  res.json({ saldo: state.saldoUSD, saldo_btc: state.saldoBTC, positions: state.positions, last_btc_price: lastBTCPrice });
+  res.json(require('./state'));
 });
 
 // Endpoint ping
@@ -41,21 +41,6 @@ const io = new Server(server, {
 io.on('connection', (socket) => {
   console.log('Novo cliente conectado:', socket.id);
 
-  // Envia saldo atual ao conectar
-  socket.emit('saldo_atualizado', { saldo: state.saldoUSD, saldo_btc: state.saldoBTC, positions: state.positions });
-
-  // Evento para atualizar saldo manualmente
-  socket.on('atualizar_saldo', (data) => {
-    const { saldo } = data;
-    if (typeof saldo === 'number') {
-      state.saldoUSD = parseFloat(saldo.toFixed(2));
-      io.emit('saldo_atualizado', { saldo: state.saldoUSD, saldo_btc: state.saldoBTC, positions: state.positions });
-      console.log('Saldo atualizado e enviado para clientes:', state.saldoUSD, state.saldoBTC);
-    } else {
-      socket.emit('erro', { mensagem: 'O campo "saldo" deve ser um número.' });
-    }
-  });
-
   socket.on('disconnect', () => {
     console.log('Cliente desconectado:', socket.id);
   });
@@ -73,36 +58,37 @@ async function fetchBTCPrice() {
 }
 
 // Transmite o preço do BTC apenas quando houver mudança
+const MEDIA_ULTIMOS_PRECOS = require('./state');
 let lastBTCPrice = null;
 setInterval(async () => {
   const btcPrice = await fetchBTCPrice();
   if (btcPrice !== null && btcPrice !== lastBTCPrice) {
+    lastUpdateTime = Date.now();
+    console.clear();
     // Atualiza o array dos últimos 5 preços
-    if (!Array.isArray(state.ultimosPrecos)) state.ultimosPrecos = [];
-    state.ultimosPrecos.push(btcPrice);
-    if (state.ultimosPrecos.length > 5) {
-      state.ultimosPrecos.shift(); // remove o mais antigo
+    if (!Array.isArray(state.ultimosPrecosRapida)) state.ultimosPrecosRapida = [];
+    state.ultimosPrecosRapida.push(btcPrice);
+    if (state.ultimosPrecosRapida.length > state.MEDIA_RAPIDA_N) {
+      state.ultimosPrecosRapida.shift(); // remove o mais antigo
     }
-    io.emit('btc_price', { price: btcPrice, timestamp: Date.now() });
-    console.log(`Preço BTC enviado para clientes: $${btcPrice}`);
+    if (!Array.isArray(state.ultimosPrecosLenta)) state.ultimosPrecosLenta = [];
+    state.ultimosPrecosLenta.push(btcPrice);
+    if (state.ultimosPrecosLenta.length > state.MEDIA_LENTA_N) {
+      state.ultimosPrecosLenta.shift(); // remove o mais antigo
+    }
+    // Calcula a média móvel dos últimos preços
+    state.MEDIA_RAPIDA = Number((state.ultimosPrecosRapida.reduce((a, b) => a + b, 0) / state.ultimosPrecosRapida.length).toFixed(2));
+    state.MEDIA_LENTA = Number((state.ultimosPrecosLenta.reduce((a, b) => a + b, 0) / state.ultimosPrecosLenta.length).toFixed(2));
+    state.movimentacao_rapida = Number((btcPrice - state.MEDIA_RAPIDA).toFixed(2));
+    state.movimentacao_lenta = Number((btcPrice - state.MEDIA_LENTA).toFixed(2));
+    
     lastBTCPrice = btcPrice;
-    // Só avalia regras se já tiver 5 preços registrados
-    if (state.ultimosPrecos.length === 5) {
-      const intencoes = avaliarRegras({
-        precoAtual: btcPrice,
-        saldoUSD: state.saldoUSD,
-        saldoBTC: state.saldoBTC,
-        lastTradeTime: state.lastTradeTime,
-        positions: state.positions,
-        ultimosPrecos: state.ultimosPrecos
-      });
-      if (intencoes && intencoes.length > 0) {
-        executarIntencoes(intencoes, btcPrice);
-        io.emit('saldo_atualizado', { saldo: state.saldoUSD, saldo_btc: state.saldoBTC, positions: state.positions });
-      }
-    } else {
-      console.log(`Aguardando coletar 5 preços para liberar compras. Preços atuais:`, state.ultimosPrecos);
-    }
+    state.BTC_PRICE = btcPrice;
+
+    //SOMENTE logar todos os dados por enqaunto
+    console.log('Estado atual:');
+    console.log(state);
+    const intencoes = await avaliarRegras();
   }
 }, 3000);
 
