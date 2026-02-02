@@ -31,9 +31,6 @@ async function TradeLoop(btcPrice) {
     lastBTCPrice = btcPrice;
     state.BTC_PRICE = btcPrice;
 
-    //SOMENTE logar todos os dados por enqaunto
-    console.log('Estado atual:');
-    console.log(state);
     const intencoes = await avaliarRegras();
     
     // Executar as intenções do bot
