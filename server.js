@@ -77,6 +77,8 @@ setInterval(async () => {
       state.ultimosPrecosLenta.shift(); // remove o mais antigo
     }
     // Calcula a média móvel dos últimos preços
+    state.prev_MEDIA_LENTA = state.MEDIA_LENTA;
+    state.prev_MEDIA_RAPIDA = state.MEDIA_RAPIDA;
     state.MEDIA_RAPIDA = Number((state.ultimosPrecosRapida.reduce((a, b) => a + b, 0) / state.ultimosPrecosRapida.length).toFixed(2));
     state.MEDIA_LENTA = Number((state.ultimosPrecosLenta.reduce((a, b) => a + b, 0) / state.ultimosPrecosLenta.length).toFixed(2));
     state.movimentacao_rapida = Number((btcPrice - state.MEDIA_RAPIDA).toFixed(2));
@@ -89,6 +91,11 @@ setInterval(async () => {
     console.log('Estado atual:');
     console.log(state);
     const intencoes = await avaliarRegras();
+    
+    // Executar as intenções do bot
+    if (intencoes) {
+      executarIntencoes(intencoes, btcPrice);
+    }
   }
 }, 3000);
 
