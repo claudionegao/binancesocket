@@ -7,6 +7,7 @@ const { Server } = require('socket.io');
 const axios = require('axios');
 
 const app = express();
+const {connect} = require('./WsBinance');
 
 // Endpoint para obter o saldo atual (USD, BTC, posições e último preço do BTC)
 app.get('/saldo', (req, res) => {
@@ -18,6 +19,8 @@ app.get('/saldo', (req, res) => {
   }
   res.json(require('./state'));
 });
+
+connect();
 
 // Endpoint ping
 app.get('/ping', (req, res) => {
@@ -60,7 +63,7 @@ async function fetchBTCPrice() {
 // Transmite o preço do BTC apenas quando houver mudança
 const MEDIA_ULTIMOS_PRECOS = require('./state');
 let lastBTCPrice = null;
-setInterval(async () => {
+/*setInterval(async () => {
   const btcPrice = await fetchBTCPrice();
   if (btcPrice !== null && btcPrice !== lastBTCPrice) {
     lastUpdateTime = Date.now();
@@ -97,7 +100,7 @@ setInterval(async () => {
       executarIntencoes(intencoes, btcPrice);
     }
   }
-}, 3000);
+}, 3000);*/
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {

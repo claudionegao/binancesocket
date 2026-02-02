@@ -1,25 +1,7 @@
 const state = require('./state');
 
 function avaliarRegras() {
-  if (state.ultimosPrecosLenta.length < state.MEDIA_LENTA_N){
-    console.log("⏳ Coletando dados... Aguarde até termos preços suficientes para calcular as médias móveis.");
-    return;
-  }
-  if (cruzouPraCima()) {
-    console.log("📈 CRUZOU PRA CIMA → COMPRARIA");
-    return { acao: 'comprar', preco: state.BTC_PRICE };
-  } 
-  else if (cruzouPraBaixo()) {
-    console.log("📉 CRUZOU PRA BAIXO → AVALIANDO LOTES");
-    // Avaliar cada lote para decidir se vende
-    const lotesParaVender = avaliarLotesParaVenda();
-    if (lotesParaVender.length > 0) {
-      return { acao: 'vender', lotes: lotesParaVender, preco: state.BTC_PRICE };
-    }
-  } 
-  else {
-    console.log("⏸️ ESPERANDO");
-  }
+  
 }
 
 // Avalia cada lote e retorna os que devem ser vendidos
