@@ -1,6 +1,7 @@
 const { avaliarRegras } = require('./regras');
 const state = require('./state');
 const { executarIntencoes } = require('./executor');
+const io = require('./server');
 
 let lastBTCPrice = null;
 
@@ -39,6 +40,14 @@ async function TradeLoop(btcPrice) {
     if (intencoes) {
       executarIntencoes(intencoes, btcPrice);
     }
+    io.io.emit('saldo_atualizado', {
+      saldo: state.SALDO_USD,
+      saldo_btc: state.SALDO_BTC,
+      positions: state.positions,
+    });
+    io.io.emit('btc_price', {
+      price: state.BTC_PRICE,
+    });
   }
 }
 
