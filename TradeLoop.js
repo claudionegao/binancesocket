@@ -36,8 +36,8 @@ async function TradeLoop(btcPrice, io) {
       executarIntencoes(intencoes, btcPrice);
     }
     io.emit('saldo_atualizado', {
-      saldo: state.saldo,
-      saldo_btc: state.saldo_btc,
+      saldo: state.saldoUSD,
+      saldo_btc: state.saldoBTC,
       positions: state.positions,
     });
     io.emit('btc_price', { price: btcPrice });  
