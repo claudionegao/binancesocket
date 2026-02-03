@@ -24,6 +24,7 @@ const state = {
   STOP_LOSS_PERCENT: -1.0,   // Vender se prejuízo <= -1%
   PERCENTUAL_COMPRA: 5,       // Compra com 5% do saldo USD
   PERCENTUAL_VENDA: 5,      // Vende 5% do saldo BTC por lote
+  THRESHOLD_CONFIRMACAO: 60,
 };
 
 module.exports = state;

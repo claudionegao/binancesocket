@@ -29,7 +29,7 @@ async function TradeLoop(btcPrice, io) {
     lastBTCPrice = btcPrice;
     state.BTC_PRICE = btcPrice;
 
-    const intencoes = await avaliarRegras();
+    const intencoes = avaliarRegras();
     
     // Executar as intenções do bot
     if (intencoes) {
