@@ -1,7 +1,18 @@
 const state = require('./state');
 
 function avaliarRegras() {
-  
+  if (cruzouPraCima()) {
+    console.log('🚀 Cruzou pra cima! Comprar BTC');
+    // Aqui você pode disparar a função de compra
+  }
+
+  if (cruzouPraBaixo()) {
+    console.log('🔻 Cruzou pra baixo! Vender BTC');
+    // Aqui você pode avaliar lotes para venda
+    const lotesParaVender = avaliarLotesParaVenda();
+    // Depois enviar ordens de venda
+    console.log(`Lotes para vender: ${lotesParaVender.length}`);
+  }
 }
 
 // Avalia cada lote e retorna os que devem ser vendidos
@@ -37,30 +48,46 @@ function avaliarLotesParaVenda() {
   return lotesParaVender;
 }
 
-function cruzouPraCima() {
-  if (
-    state.prev_MEDIA_RAPIDA !== undefined &&
-    state.prev_MEDIA_LENTA !== undefined
-  ) {
-    return (
-      state.prev_MEDIA_RAPIDA <= state.prev_MEDIA_LENTA &&
-      state.MEDIA_RAPIDA > state.MEDIA_LENTA
-    );
+function cruzouPraCima(confirmTicks = 2) {
+  // Verifica se a média rápida está acima da lenta nos últimos N ticks
+  let continuaCima = true;
+
+  for (let i = 0; i < confirmTicks; i++) {
+    const precoRapida = state.ultimosPrecosRapida[state.ultimosPrecosRapida.length - 1 - i];
+    const precoLenta = state.ultimosPrecosLenta[state.ultimosPrecosLenta.length - 1 - i];
+
+    if (precoRapida <= precoLenta) {
+      continuaCima = false;
+      break;
+    }
   }
-  return false;
+
+  // Dispara apenas se houve cruzamento e continua em alta
+  return (
+    state.prev_MEDIA_RAPIDA <= state.prev_MEDIA_LENTA &&
+    state.MEDIA_RAPIDA > state.MEDIA_LENTA &&
+    continuaCima
+  );
 }
 
-function cruzouPraBaixo() {
-  if (
-    state.prev_MEDIA_RAPIDA !== undefined &&
-    state.prev_MEDIA_LENTA !== undefined
-  ) {
-    return (
-      state.prev_MEDIA_RAPIDA >= state.prev_MEDIA_LENTA &&
-      state.MEDIA_RAPIDA < state.MEDIA_LENTA
-    );
+function cruzouPraBaixo(confirmTicks = 2) {
+  let continuaBaixa = true;
+
+  for (let i = 0; i < confirmTicks; i++) {
+    const precoRapida = state.ultimosPrecosRapida[state.ultimosPrecosRapida.length - 1 - i];
+    const precoLenta = state.ultimosPrecosLenta[state.ultimosPrecosLenta.length - 1 - i];
+
+    if (precoRapida >= precoLenta) {
+      continuaBaixa = false;
+      break;
+    }
   }
-  return false;
+
+  return (
+    state.prev_MEDIA_RAPIDA >= state.prev_MEDIA_LENTA &&
+    state.MEDIA_RAPIDA < state.MEDIA_LENTA &&
+    continuaBaixa
+  );
 }
 
 module.exports = {
