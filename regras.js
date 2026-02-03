@@ -1,12 +1,12 @@
 const state = require('./state');
 
 function avaliarRegras() {
-  if (cruzouPraCima()) {
+  if (cruzouPraCima(5)) {
     console.log('🚀 Cruzou pra cima! Comprar BTC');
     // Aqui você pode disparar a função de compra
   }
 
-  if (cruzouPraBaixo()) {
+  if (cruzouPraBaixo(5)) {
     console.log('🔻 Cruzou pra baixo! Vender BTC');
     // Aqui você pode avaliar lotes para venda
     const lotesParaVender = avaliarLotesParaVenda();
@@ -49,20 +49,23 @@ function avaliarLotesParaVenda() {
 }
 
 function cruzouPraCima(confirmTicks = 2) {
-  // Verifica se a média rápida está acima da lenta nos últimos N ticks
+  const nRapida = Math.min(confirmTicks, state.ultimosPrecosRapida.length);
+  const nLenta = Math.min(confirmTicks, state.ultimosPrecosLenta.length);
+
   let continuaCima = true;
 
-  for (let i = 0; i < confirmTicks; i++) {
-    const precoRapida = state.ultimosPrecosRapida[state.ultimosPrecosRapida.length - 1 - i];
+  for (let i = 0; i < nLenta; i++) {
     const precoLenta = state.ultimosPrecosLenta[state.ultimosPrecosLenta.length - 1 - i];
-
+    const precoRapida = i < nRapida 
+      ? state.ultimosPrecosRapida[state.ultimosPrecosRapida.length - 1 - i] 
+      : state.ultimosPrecosRapida[0]; // pega o último existente da rápida se não tiver mais
+     
     if (precoRapida <= precoLenta) {
       continuaCima = false;
       break;
     }
   }
 
-  // Dispara apenas se houve cruzamento e continua em alta
   return (
     state.prev_MEDIA_RAPIDA <= state.prev_MEDIA_LENTA &&
     state.MEDIA_RAPIDA > state.MEDIA_LENTA &&
@@ -71,11 +74,16 @@ function cruzouPraCima(confirmTicks = 2) {
 }
 
 function cruzouPraBaixo(confirmTicks = 2) {
+  const nRapida = Math.min(confirmTicks, state.ultimosPrecosRapida.length);
+  const nLenta = Math.min(confirmTicks, state.ultimosPrecosLenta.length);
+
   let continuaBaixa = true;
 
-  for (let i = 0; i < confirmTicks; i++) {
-    const precoRapida = state.ultimosPrecosRapida[state.ultimosPrecosRapida.length - 1 - i];
+  for (let i = 0; i < nLenta; i++) {
     const precoLenta = state.ultimosPrecosLenta[state.ultimosPrecosLenta.length - 1 - i];
+    const precoRapida = i < nRapida 
+      ? state.ultimosPrecosRapida[state.ultimosPrecosRapida.length - 1 - i] 
+      : state.ultimosPrecosRapida[0]; // pega o último existente da rápida se não tiver mais
 
     if (precoRapida >= precoLenta) {
       continuaBaixa = false;
@@ -89,6 +97,7 @@ function cruzouPraBaixo(confirmTicks = 2) {
     continuaBaixa
   );
 }
+
 
 module.exports = {
   avaliarRegras
