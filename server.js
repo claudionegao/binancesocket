@@ -20,7 +20,15 @@ app.get('/saldo', (req, res) => {
   res.json(require('./state'));
 });
 
-connect();
+
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+  },
+});
+
+connect(io);
 
 // Endpoint ping
 app.get('/ping', (req, res) => {
@@ -32,13 +40,6 @@ app.get('/ping', (req, res) => {
   }
   console.log('Ping recebido');
   res.json({ message: 'pong' });
-});
-
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: '*',
-  },
 });
 
 io.on('connection', (socket) => {
@@ -53,5 +54,3 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`Servidor Socket.IO e API rodando na porta ${PORT}`);
 });
-
-module.exports = { io };

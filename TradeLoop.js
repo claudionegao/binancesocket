@@ -1,14 +1,14 @@
 const { avaliarRegras } = require('./regras');
 const state = require('./state');
 const { executarIntencoes } = require('./executor');
-const io = require('./server');
 
 let lastBTCPrice = null;
 
-async function TradeLoop(btcPrice) {
+async function TradeLoop(btcPrice, io) {
   if (btcPrice !== null && btcPrice !== lastBTCPrice) {
     lastUpdateTime = Date.now();
     console.clear();
+    console.log(`State`, state);
     // Atualiza o array dos últimos 5 preços
     if (!Array.isArray(state.ultimosPrecosRapida)) state.ultimosPrecosRapida = [];
     state.ultimosPrecosRapida.push(btcPrice);
@@ -37,14 +37,12 @@ async function TradeLoop(btcPrice) {
     if (intencoes) {
       executarIntencoes(intencoes, btcPrice);
     }
-    io.io.emit('saldo_atualizado', {
-      saldo: state.SALDO_USD,
-      saldo_btc: state.SALDO_BTC,
+    io.emit('saldo_atualizado', {
+      saldo: state.saldo,
+      saldo_btc: state.saldo_btc,
       positions: state.positions,
     });
-    io.io.emit('btc_price', {
-      price: state.BTC_PRICE,
-    });
+    io.emit('btc_price', { price: btcPrice });  
   }
 }
 
