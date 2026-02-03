@@ -75,7 +75,7 @@ function cruzouPraCima(confirmTicks = 2) {
   }
   if (paracima.cruzou){
     const percentualAlta = ((state.BTC_PRICE - paracima.precoaocruzar) / paracima.precoaocruzar) * 100;
-    console.log(`  Desde o cruzamento pra cima, variação: ${percentualAlta.toFixed(2)}% Preço atual: ${state.BTC_PRICE}`);
+    //console.log(`  Desde o cruzamento pra cima, variação: ${percentualAlta.toFixed(2)}% Preço atual: ${state.BTC_PRICE}`);
     
     if(percentualAlta >= 0.2) {
       console.clear();
@@ -115,7 +115,7 @@ function cruzouPraBaixo(confirmTicks = 2) {
   }
   if (parabaixo.cruzou){
     const percentualBaixa = ((parabaixo.precoaocruzar - state.BTC_PRICE) / parabaixo.precoaocruzar) * -100;
-    console.log(`  Desde o cruzamento pra baixo, variação: ${percentualBaixa.toFixed(2)}% Preço atual: ${state.BTC_PRICE}`);
+    //console.log(`  Desde o cruzamento pra baixo, variação: ${percentualBaixa.toFixed(2)}% Preço atual: ${state.BTC_PRICE}`);
     
     if(percentualBaixa >= 0.2) {
       console.clear();
