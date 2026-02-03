@@ -63,7 +63,7 @@ function cruzouPraCima(confirmTicks = 2) {
   if (cruzouAgora) {
     parabaixo.cruzou = false; // Reset cruzamento pra baixo se houver cruzamento pra cima
     console.clear();
-    console.log('✅ CRUZAMENTO CONFIRMADO pra cima!');
+    console.log('CRUZAMENTO CONFIRMADO pra cima!');
     console.log(`  Anterior: Rápida=${state.prev_MEDIA_RAPIDA}, Lenta=${state.prev_MEDIA_LENTA}`);
     console.log(`  Atual: Rápida=${state.MEDIA_RAPIDA}, Lenta=${state.MEDIA_LENTA}`);
     paracima.cruzou = true;
@@ -103,7 +103,7 @@ function cruzouPraBaixo(confirmTicks = 2) {
   if (cruzouAgora) {
     paracima.cruzou = false; // Reset cruzamento pra cima se houver cruzamento pra baixo
     console.clear();
-    console.log('✅ CRUZAMENTO CONFIRMADO pra baixo!');
+    console.log('CRUZAMENTO CONFIRMADO pra baixo!');
     console.log(`  Anterior: Rápida=${state.prev_MEDIA_RAPIDA}, Lenta=${state.prev_MEDIA_LENTA}`);
     console.log(`  Atual: Rápida=${state.MEDIA_RAPIDA}, Lenta=${state.MEDIA_LENTA}`);
     parabaixo.cruzou = true;
