@@ -41,6 +41,7 @@ async function TradeLoop(btcPrice, io) {
       positions: state.positions,
     });
     io.emit('btc_price', { price: btcPrice });  
+    io.emit('state', state);
   }
 }
 
