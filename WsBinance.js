@@ -17,6 +17,7 @@ function connect(io) {
   });
 
   ws.on('ping', () => {
+    console.log('Ping recebido da Binance');
     ws.pong();
   });
 
