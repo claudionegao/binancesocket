@@ -10,8 +10,8 @@ const state = {
   ultimosPrecosLenta: [], // armazena os últimos 20 preços do BTC
   BTC_PRICE: null,
   MAX_LOTES: 5,
-  MEDIA_LENTA_N: 20,
-  MEDIA_RAPIDA_N: 5,
+  MEDIA_LENTA_N: 100,
+  MEDIA_RAPIDA_N: 20,
   COOLDOWN_LOTES: 60,
   MEDIA_RAPIDA: null,
   prev_MEDIA_RAPIDA: null,
