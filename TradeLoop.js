@@ -7,8 +7,6 @@ let lastBTCPrice = null;
 async function TradeLoop(btcPrice, io) {
   if (btcPrice !== null && btcPrice !== lastBTCPrice) {
     lastUpdateTime = Date.now();
-    console.clear();
-    console.log(`State`, state);
     // Atualiza o array dos últimos 5 preços
     if (!Array.isArray(state.ultimosPrecosRapida)) state.ultimosPrecosRapida = [];
     state.ultimosPrecosRapida.push(btcPrice);
