@@ -1,11 +1,14 @@
+const { executarIntencoes } = require('./executor');
 const state = require('./state');
 const paracima = {precoaocruzar:0,cruzou:false};
 const parabaixo = {precoaocruzar:0,cruzou:false};
 
 
 function avaliarRegras() {  
+  const intencoes = [];
   if (cruzouPraCima(2)) {
     console.log('🚀 Cruzou pra cima! Comprar BTC');
+    executarIntencoes({ acao: 'comprar', preco: state.BTC_PRICE });
     // Aqui você pode disparar a função de compra
   }
 
@@ -13,6 +16,7 @@ function avaliarRegras() {
     console.log('🔻 Cruzou pra baixo! Vender BTC');
     // Aqui você pode avaliar lotes para venda
     const lotesParaVender = avaliarLotesParaVenda();
+    executarIntencoes({ acao: 'vender', lotes: lotesParaVender, precoAtual: state.BTC_PRICE });
     // Depois enviar ordens de venda
     console.log(`Lotes para vender: ${lotesParaVender.length}`);
   }
@@ -23,28 +27,34 @@ function avaliarLotesParaVenda() {
   const lotesParaVender = [];
 
   state.positions.forEach((lote, index) => {
-    const diferencaUSD = state.BTC_PRICE - lote.precoCompra;
-    const diferencaPercent = (diferencaUSD / lote.precoCompra) * 100;
+    if (lote.timestamp && (Date.now() - lote.timestamp) < state.COOLDOWN_LOTES * 1000)  return;
 
-    console.log(
-      `  Lote #${index + 1}: Comprado a $${lote.precoCompra.toFixed(2)}, ` +
-      `Atual $${state.BTC_PRICE.toFixed(2)}, ` +
-      `Diferença: ${diferencaPercent.toFixed(2)}%`
-    );
+    /*
+    
+    A primeira ordem de venda realiza lucro com um ganho de 1% vendendo 33% do lote comprado.
+    A próxima ordem de venda realiza lucro com 4% vendendo 33% do restante.
+    A última ordem de venda realiza lucro com um ganho de 7% vendendo oque restar do lote.
+    ex: lote de 100 btc primeira venda 33 btc com 1% de lucro, segunda venda 33 btc com 4% de lucro, terceira venda 34 btc com 7% de lucro.
 
-    // Vender se lucro mínimo for atingido
-    if (diferencaPercent >= state.LUCRO_MINIMO_PERCENT) {
-      console.log(`  ✅ Lote #${index + 1} VENDENDO (Lucro: ${diferencaPercent.toFixed(2)}%)`);
-      lotesParaVender.push({ index, lote, lucro: diferencaPercent });
+    */
+    const percentualGanho = ((state.BTC_PRICE - lote.precoCompra) / lote.precoCompra) * 100;
+    //verificar a quantidade restante do lote para definir se pode vender
+    //se o lote esta vazio excluir ele da lista de lotes
+    //garantir estar removendo o lote correto
+    if (lote.restante <= 0) {
+      state.positions.splice(index, 1);
+      return;
     }
-    // Vender se stop loss for acionado
-    else if (diferencaPercent <= state.STOP_LOSS_PERCENT) {
-      console.log(`  ⚠️ Lote #${index + 1} VENDENDO (Stop Loss: ${diferencaPercent.toFixed(2)}%)`);
-      lotesParaVender.push({ index, lote, prejuizo: diferencaPercent });
-    }
-    // Manter lote aberto
-    else {
-      console.log(`  ⏸️ Lote #${index + 1} MANTENDO ABERTO`);
+    const porcentagemrestante = (lote.restante / lote.quantidadeComprada) * 100;
+    
+    if (porcentagemrestante > 66 && percentualGanho >= 1) {
+      lotesParaVender.push({ index, quantidade: lote.quantidadeComprada * 0.33 });
+      lote.restante -= lote.quantidadeComprada * 0.33;
+    } else if (porcentagemrestante > 33 && percentualGanho >= 4) {
+      lotesParaVender.push({ index, quantidade: lote.quantidadeComprada * 0.33 });
+      lote.restante -= lote.quantidadeComprada * 0.33;
+    } else if (porcentagemrestante <= 33 && percentualGanho >= 7) {
+      lotesParaVender.push({ index, quantidade: lote.restante });
     }
   });
 
