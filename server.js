@@ -1,24 +1,11 @@
-const { avaliarRegras } = require('./regras');
 const state = require('./state');
-const { executarIntencoes } = require('./executor');
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
-const axios = require('axios');
+const { TradeLoop } = require('./tradeloop');
 
 const app = express();
 const {connect} = require('./WsBinance');
-
-// Endpoint para obter o saldo atual (USD, BTC, posições e último preço do BTC)
-app.get('/saldo', (req, res) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  res.json(require('./state'));
-});
 
 
 const server = http.createServer(app);
@@ -28,7 +15,7 @@ const io = new Server(server, {
   },
 });
 
-connect(io);
+connect((price) => TradeLoop(price, io));
 
 // Endpoint ping
 app.get('/ping', (req, res) => {

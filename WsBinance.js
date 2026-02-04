@@ -1,7 +1,6 @@
 const WebSocket = require('ws');
-const { TradeLoop } = require('./TradeLoop');
 
-function connect(io) {
+function connect(callback) {
   const ws = new WebSocket(
     'wss://data-stream.binance.vision/ws/btcusdt@ticker'
   );
@@ -13,7 +12,7 @@ function connect(io) {
   ws.on('message', (data) => {
     const msg = JSON.parse(data.toString());
     const price = Number(msg.c);
-    TradeLoop(price, io);
+    callback(price);
   });
 
   ws.on('ping', () => {
@@ -26,8 +25,7 @@ function connect(io) {
   });
 
   ws.on('close', () => {
-    console.log('Conexão caiu, reconectando em 5s...');
-    setTimeout(connect, 5000);
+    console.log('Conexão caiu');
   });
 }
 
