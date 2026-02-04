@@ -5,9 +5,7 @@ function executarIntencoes(tipo) {
             comprar();
         } else if (tipo === 'venda') {
             vender();
-        } else if (tipo === 'stop_loss') {
-        verificarStopLoss();
-    }
+        }
     }
 
 function vender() {
@@ -132,32 +130,6 @@ function comprar() {
         quantidadeBTC,
         precoCompra: state.BTC_PRICE,
         timestamp: Date.now(),
-    });
-}
-
-function verificarStopLoss() {
-    state.positions.forEach((lote) => {
-        const lucroPercentual = ((state.BTC_PRICE - lote.precoCompra) / lote.precoCompra) * 100;
-        
-        if (lucroPercentual <= state.STOP_LOSS_PERCENT && lote.restante > 0) {
-            const quantidadeAVender = lote.restante;
-            console.log(`🛑 STOP LOSS: Vendendo ${quantidadeAVender} BTC a ${state.BTC_PRICE} USDT (Prejuízo: ${lucroPercentual.toFixed(2)}%)`);
-            
-            state.saldoUSD += quantidadeAVender * state.BTC_PRICE;
-            state.saldoBTC -= quantidadeAVender;
-            
-            // Remover lote
-            state.positions = state.positions.filter((pos) => pos.identificador !== lote.identificador);
-            
-            // Registrar movimentação
-            state.movimentacoes_de_lote.push({
-                tipo: 'stop_loss',
-                quantidadeBTC: quantidadeAVender,
-                precoVenda: state.BTC_PRICE,
-                prejuizo: lucroPercentual.toFixed(2) + '%',
-                timestamp: Date.now(),
-            });
-        }
     });
 }
 
