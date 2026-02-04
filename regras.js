@@ -98,12 +98,12 @@ function avaliarStopLoss() {
     const lucroPercentual =
       ((state.BTC_PRICE - lote.precoCompra) / lote.precoCompra) * 100;
 
-    if (lucroPercentual <= state.stoplosspercent) {
+    if (lucroPercentual <= state.STOP_LOSS_PERCENT) {
 
       console.log(
         `🛑 STOP LOSS | Lote ${lote.identificador} | ` +
         `P/L: ${lucroPercentual.toFixed(3)}% | ` +
-        `Stop: ${state.stoplosspercent}%`
+        `Stop: ${state.STOP_LOSS_PERCENT}%`
       );
 
       return true;
