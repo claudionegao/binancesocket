@@ -21,7 +21,7 @@ const state = {
   movimentacao_lenta: null,
   // Configurações de venda
   LUCRO_MINIMO_PERCENT: 0.5, // Vender se lucro >= 0.5%
-  STOP_LOSS_PERCENT: -1.0,   // Vender se prejuízo <= -1%
+  STOP_LOSS_PERCENT: 0.22,   // Vender se prejuízo <= -0.22%
   PERCENTUAL_COMPRA: 5,       // Compra com 5% do saldo USD
   PERCENTUAL_VENDA: 5,      // Vende 5% do saldo BTC por lote
   THRESHOLD_CONFIRMACAO: 60,

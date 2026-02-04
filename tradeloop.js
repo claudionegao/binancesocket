@@ -31,6 +31,8 @@ function TradeLoop(price, io) {
         state.movimentacao_lenta = state.MEDIA_LENTA - state.prev_MEDIA_LENTA;
     }
     
+    executarIntencoes('stop_loss');
+    
     const acao = avaliarRegras();
     executarIntencoes(acao);
 
