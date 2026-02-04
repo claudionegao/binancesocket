@@ -12,6 +12,10 @@ function avaliarRegras() {
         console.log('🔻 Cruzou pra baixo! Vender BTC');
         return 'venda';
     }
+    if (avaliarStopLoss()){
+      console.log('😭 Stoploss detectado, Vender lote')
+      return 'venda';
+    }
     return null;
 }
 
@@ -83,6 +87,29 @@ function cruzouPraBaixo() {
       parabaixo.cruzou = false;
     }
   }
+  return false;
+}
+
+function avaliarStopLoss() {
+  if (!state.positions || state.positions.length === 0) return false;
+
+  for (const lote of state.positions) {
+
+    const lucroPercentual =
+      ((state.BTC_PRICE - lote.precoCompra) / lote.precoCompra) * 100;
+
+    if (lucroPercentual <= state.stoplosspercent) {
+
+      console.log(
+        `🛑 STOP LOSS | Lote ${lote.identificador} | ` +
+        `P/L: ${lucroPercentual.toFixed(3)}% | ` +
+        `Stop: ${state.stoplosspercent}%`
+      );
+
+      return true;
+    }
+  }
+
   return false;
 }
 
