@@ -2,13 +2,13 @@ const _state = require("./state");
 
 function executarIntencoes(state = _state, tipo) {
         if (tipo === 'compra') {
-            comprar();
+            comprar(state);
         } else if (tipo === 'venda') {
-            vender();
+            vender(state);
         }
     }
 
-function vender() {
+function vender(state) {
     // venda será por lote, stop loss caso o preço de compra estiver 0,22% menor que o preço atual, em caso de lucro seguir as regras abaixo
     // primeira venda do lote apenas caso 1% de lucro vendendo 33% do total comprado do lote, segunda venda do lote apenas com 4% de lucro vendendo mais 33% do total comprado do lote, venda final do lote com 7% de lucro vendendo o restante do lote
     const lotes = state.positions
@@ -103,7 +103,7 @@ function vender() {
     });
 }
 // compra será sempre em 5% do saldo USD
-function comprar() {
+function comprar(state) {
     if (state.positions.length >= state.MAX_LOTES) {
         console.log('Limite de lotes atingido');
         return;
