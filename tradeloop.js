@@ -44,7 +44,7 @@ function TradeLoop(state= _state, price, io) {
             state.saldoUSD += quantidadeAVender * state.PRICE;
             state.saldo -= quantidadeAVender;
             // identificar o lote e remover da lista de posições
-            state.positions = state.positions.filter((pos) => pos.identificador !== identificador);
+            state.positions = state.positions.filter((pos) => pos.identificador !== lote.identificador);
             state.movimentacoes_de_lote.push({
                 tipo: 'take profit',
                 quantidade: quantidadeAVender,
