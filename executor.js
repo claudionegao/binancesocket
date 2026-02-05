@@ -100,10 +100,11 @@ function vender(state) {
             });
             return;
         }
-        const takeprofit = ((state.PRICE - melhorpreco) / melhorpreco) * 100;
-        if (takeprofit <= state.TAKE_PROFIT_PERCENT && state.positions[index].restante > 0){
+        // Take profit: protege lucros quando o preço cai do melhor preço atingido
+        const quedaDoMelhorPreco = ((state.PRICE - melhorpreco) / melhorpreco) * 100;
+        if (quedaDoMelhorPreco <= state.TAKE_PROFIT_PERCENT && state.positions[index].restante > 0){
             const quantidadeAVender = state.positions[index].restante;
-            console.log(`Take Profit: Vendendo ${quantidadeAVender} ${state.CRYPTO} a ${state.PRICE} USDT`);
+            console.log(`Take Profit: Vendendo ${quantidadeAVender} ${state.CRYPTO} a ${state.PRICE} USDT (Caiu ${quedaDoMelhorPreco.toFixed(2)}% do melhor preço ${melhorpreco})`);
             state.saldoUSD += quantidadeAVender * state.PRICE;
             state.saldo -= quantidadeAVender;
             // identificar o lote e remover da lista de posições
