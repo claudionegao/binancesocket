@@ -3,12 +3,12 @@
 
 const state = {
   saldoUSD: 100.0,
-  saldoBTC: 0.0,
+  saldo: 0.0,
   positions: [], // [{ quantidadeBTC, precoCompra, timestamp }]
   movimentacoes_de_lote: [],
   ultimosPrecosRapida: [], // armazena os últimos 5 preços do BTC
   ultimosPrecosLenta: [], // armazena os últimos 20 preços do BTC
-  BTC_PRICE: null,
+  PRICE: null,
   MAX_LOTES: 5,
   MEDIA_LENTA_N: 100,
   MEDIA_RAPIDA_N: 20,
@@ -25,6 +25,6 @@ const state = {
   PERCENTUAL_COMPRA: 5,       // Compra com 5% do saldo USD
   PERCENTUAL_VENDA: 5,      // Vende 5% do saldo BTC por lote
   THRESHOLD_CONFIRMACAO: 60,
+  CRYPTO: "btcusdt"
 };
-
 module.exports = state;

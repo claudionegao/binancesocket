@@ -1,9 +1,9 @@
-const state = require("./state");
+const _state = require("./state");
 const { avaliarRegras } = require("./regras");
 const { executarIntencoes } = require("./executor");
 
-function TradeLoop(price, io) {
-    state.BTC_PRICE = price;
+function TradeLoop(state= _state, price, io) {
+    state.PRICE = price;
     // adicionar o preço atual aos arrays de preços
     state.ultimosPrecosRapida.push(price);
     state.ultimosPrecosLenta.push(price);
@@ -31,8 +31,8 @@ function TradeLoop(price, io) {
         state.movimentacao_lenta = state.MEDIA_LENTA - state.prev_MEDIA_LENTA;
     }
     
-    const acao = avaliarRegras();
-    executarIntencoes(acao);
+    const acao = avaliarRegras(state);
+    executarIntencoes(state,acao);
 
     io.emit('state', state);    
 }

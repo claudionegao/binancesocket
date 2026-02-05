@@ -1,8 +1,8 @@
 const WebSocket = require('ws');
 
-function connect(callback) {
+function connect(crypto="btcusdt",callback) {
   const ws = new WebSocket(
-    'wss://data-stream.binance.vision/ws/btcusdt@ticker'
+    `wss://data-stream.binance.vision/ws/${crypto}@ticker`
   );
 
   ws.on('open', () => {

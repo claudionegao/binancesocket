@@ -15,7 +15,7 @@ const io = new Server(server, {
   },
 });
 
-connect((price) => TradeLoop(price, io));
+connect("btcusdt",(price) => TradeLoop(price, io));
 
 // Endpoint ping
 app.get('/ping', (req, res) => {

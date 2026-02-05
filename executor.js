@@ -1,6 +1,6 @@
-const state = require("./state");
+const _state = require("./state");
 
-function executarIntencoes(tipo) {
+function executarIntencoes(state = _state, tipo) {
         if (tipo === 'compra') {
             comprar();
         } else if (tipo === 'venda') {
@@ -25,7 +25,7 @@ function vender() {
                 return;
             }
         }
-        const lucroPercentual = ((state.BTC_PRICE - precoCompra) / precoCompra) * 100;
+        const lucroPercentual = ((state.PRICE - precoCompra) / precoCompra) * 100;
         if (state.positions[index].restante <= 0) {
             // identificar o lote e remover da lista de posições
             state.positions = state.positions.filter((pos) => pos.identificador !== identificador);
@@ -33,18 +33,18 @@ function vender() {
         }
         if (lucroPercentual >= 1 && state.positions[index].restante > 0 && state.positions[index].vendasrealizadas === 0) {
             // vender 33% do total comprado do lote
-            const quantidadeAVender = state.positions[index].quantidadeBTC * 0.33;
-            console.log(`Vendendo ${quantidadeAVender} BTC a ${state.BTC_PRICE} USDT`);
-            state.saldoUSD += quantidadeAVender * state.BTC_PRICE;
-            state.saldoBTC -= quantidadeAVender;
+            const quantidadeAVender = state.positions[index].quantidade * 0.33;
+            console.log(`Vendendo ${quantidadeAVender} ${state.CRYPTO} a ${state.PRICE} USDT`);
+            state.saldoUSD += quantidadeAVender * state.PRICE;
+            state.saldo -= quantidadeAVender;
             // criar um novo lote com os novos dados identificar o lote certo e substituir os dados do lote
             state.positions[index].restante -= quantidadeAVender;
             state.positions[index].vendasrealizadas += 1;
             state.positions[index].ultimavenda = Date.now();
             state.movimentacoes_de_lote.push({
                 tipo: 'venda',
-                quantidadeBTC: quantidadeAVender,
-                precoVenda: state.BTC_PRICE,
+                quantidade: quantidadeAVender,
+                precoVenda: state.PRICE,
                 timestamp: Date.now(),
             });
             return;
@@ -52,18 +52,18 @@ function vender() {
         // verificar se o lote ja foi vendido alguma vez
         if (lucroPercentual >= 4 && state.positions[index].restante > 0 && state.positions[index].vendasrealizadas === 1) {
             // vender mais 33% do total comprado do lote
-            const quantidadeAVender = state.positions[index].quantidadeBTC * 0.33;
-            console.log(`Vendendo ${quantidadeAVender} BTC a ${state.BTC_PRICE} USDT`);
-            state.saldoUSD += quantidadeAVender * state.BTC_PRICE;
-            state.saldoBTC -= quantidadeAVender;
+            const quantidadeAVender = state.positions[index].quantidade * 0.33;
+            console.log(`Vendendo ${quantidadeAVender} ${state.CRYPTO} a ${state.PRICE} USDT`);
+            state.saldoUSD += quantidadeAVender * state.PRICE;
+            state.saldo -= quantidadeAVender;
             // criar um novo lote com os novos dados identificar o lote certo e substituir os dados do lote
             state.positions[index].restante -= quantidadeAVender;
             state.positions[index].vendasrealizadas += 1;
             state.positions[index].ultimavenda = Date.now();
             state.movimentacoes_de_lote.push({
                 tipo: 'venda',
-                quantidadeBTC: quantidadeAVender,
-                precoVenda: state.BTC_PRICE,
+                quantidade: quantidadeAVender,
+                precoVenda: state.PRICE,
                 timestamp: Date.now(),
             });
             return;
@@ -71,15 +71,15 @@ function vender() {
         if (lucroPercentual >= 7 && state.positions[index].restante > 0 && state.positions[index].vendasrealizadas === 2) {
             // vender o restante do lote
             const quantidadeAVender = state.positions[index].restante;
-            console.log(`Vendendo ${quantidadeAVender} BTC a ${state.BTC_PRICE} USDT`);
-            state.saldoUSD += quantidadeAVender * state.BTC_PRICE;
-            state.saldoBTC -= quantidadeAVender;
+            console.log(`Vendendo ${quantidadeAVender} ${state.CRYPTO} a ${state.PRICE} USDT`);
+            state.saldoUSD += quantidadeAVender * state.PRICE;
+            state.saldo -= quantidadeAVender;
             // identificar o lote e remover da lista de posições
             state.positions = state.positions.filter((pos) => pos.identificador !== identificador);
             state.movimentacoes_de_lote.push({
                 tipo: 'venda',
-                quantidadeBTC: quantidadeAVender,
-                precoVenda: state.BTC_PRICE,
+                quantidade: quantidadeAVender,
+                precoVenda: state.PRICE,
                 timestamp: Date.now(),
             });
             return;
@@ -87,15 +87,15 @@ function vender() {
         // stop loss caso o preço de compra estiver 0,22% menor que o preço atual
         if (lucroPercentual <= -0.22 && state.positions[index].restante > 0) {
             const quantidadeAVender = state.positions[index].restante;
-            console.log(`Stop Loss: Vendendo ${quantidadeAVender} BTC a ${state.BTC_PRICE} USDT`);
-            state.saldoUSD += quantidadeAVender * state.BTC_PRICE;
-            state.saldoBTC -= quantidadeAVender;
+            console.log(`Stop Loss: Vendendo ${quantidadeAVender} ${state.CRYPTO} a ${state.PRICE} USDT`);
+            state.saldoUSD += quantidadeAVender * state.PRICE;
+            state.saldo -= quantidadeAVender;
             // identificar o lote e remover da lista de posições
             state.positions = state.positions.filter((pos) => pos.identificador !== identificador);
             state.movimentacoes_de_lote.push({
-                tipo: 'venda',
-                quantidadeBTC: quantidadeAVender,
-                precoVenda: state.BTC_PRICE,
+                tipo: 'stop loss',
+                quantidade: quantidadeAVender,
+                precoVenda: state.PRICE,
                 timestamp: Date.now(),
             });
             return;
@@ -113,22 +113,22 @@ function comprar() {
         console.log('Saldo insuficiente para comprar');
         return;
     }
-    const quantidadeBTC = valorCompra / state.BTC_PRICE;
-    console.log(`Comprando ${quantidadeBTC} BTC a ${state.BTC_PRICE} USDT`);
+    const quantidade = valorCompra / state.PRICE;
+    console.log(`Comprando ${quantidade} ${state.CRYPTO} a ${state.PRICE} USDT`);
     state.saldoUSD -= valorCompra;
-    state.saldoBTC += quantidadeBTC;
+    state.saldo += quantidade;
     state.positions.push({
         identificador: Date.now(),
-        quantidadeBTC,
-        restante: quantidadeBTC,
-        precoCompra: state.BTC_PRICE,
+        quantidade,
+        restante: quantidade,
+        precoCompra: state.PRICE,
         vendasrealizadas: 0,
         ultimavenda: null,
     });
     state.movimentacoes_de_lote.push({
         tipo: 'compra',
-        quantidadeBTC,
-        precoCompra: state.BTC_PRICE,
+        quantidade,
+        precoCompra: state.PRICE,
         timestamp: Date.now(),
     });
 }

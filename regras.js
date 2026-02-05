@@ -1,15 +1,15 @@
-const state = require("./state");
+const _state = require("./state");
 const paracima = {precoaocruzar:0,cruzou:false};
 const parabaixo = {precoaocruzar:0,cruzou:false};
 
-function avaliarRegras() {
+function avaliarRegras(state = _state) {
     if (cruzouPraCima()) {
-    console.log('🚀 Cruzou pra cima! Comprar BTC');
+    console.log(`🚀 Cruzou pra cima! Comprar ${state.CRYPTO}`);
     return 'compra';
     }
 
     if (cruzouPraBaixo()) {
-        console.log('🔻 Cruzou pra baixo! Vender BTC');
+        console.log(`🔻 Cruzou pra baixo! Vender ${state.CRYPTO}`);
         return 'venda';
     }
     if (avaliarStopLoss()){
@@ -34,11 +34,11 @@ function cruzouPraCima() {
     console.log(`  Anterior: Rápida=${state.prev_MEDIA_RAPIDA}, Lenta=${state.prev_MEDIA_LENTA}`);
     console.log(`  Atual: Rápida=${state.MEDIA_RAPIDA}, Lenta=${state.MEDIA_LENTA}`);
     paracima.cruzou = true;
-    paracima.precoaocruzar = state.BTC_PRICE;
+    paracima.precoaocruzar = state.PRICE;
   }
   if (paracima.cruzou){
-    const percentualAlta = ((state.BTC_PRICE - paracima.precoaocruzar) / paracima.precoaocruzar) * 100;
-    //console.log(`  Desde o cruzamento pra cima, variação: ${percentualAlta.toFixed(2)}% Preço atual: ${state.BTC_PRICE}`);
+    const percentualAlta = ((state.PRICE - paracima.precoaocruzar) / paracima.precoaocruzar) * 100;
+    //console.log(`  Desde o cruzamento pra cima, variação: ${percentualAlta.toFixed(2)}% Preço atual: ${state.PRICE}`);
     
     if(percentualAlta >= 0.2) {
       console.clear();
@@ -69,12 +69,12 @@ function cruzouPraBaixo() {
     console.log(`  Anterior: Rápida=${state.prev_MEDIA_RAPIDA}, Lenta=${state.prev_MEDIA_LENTA}`);
     console.log(`  Atual: Rápida=${state.MEDIA_RAPIDA}, Lenta=${state.MEDIA_LENTA}`);
     parabaixo.cruzou = true;
-    parabaixo.precoaocruzar = state.BTC_PRICE;
+    parabaixo.precoaocruzar = state.PRICE;
   }
 
   if (parabaixo.cruzou){
-    const percentualBaixa = ((parabaixo.precoaocruzar - state.BTC_PRICE) / parabaixo.precoaocruzar) * -100;
-    //console.log(`  Desde o cruzamento pra baixo, variação: ${percentualBaixa.toFixed(2)}% Preço atual: ${state.BTC_PRICE}`);
+    const percentualBaixa = ((parabaixo.precoaocruzar - state.PRICE) / parabaixo.precoaocruzar) * -100;
+    //console.log(`  Desde o cruzamento pra baixo, variação: ${percentualBaixa.toFixed(2)}% Preço atual: ${state.PRICE}`);
     
     if(percentualBaixa >= 0.2) {
       console.clear();
@@ -96,7 +96,7 @@ function avaliarStopLoss() {
   for (const lote of state.positions) {
 
     const lucroPercentual =
-      ((state.BTC_PRICE - lote.precoCompra) / lote.precoCompra) * 100;
+      ((state.PRICE - lote.precoCompra) / lote.precoCompra) * 100;
 
     if (lucroPercentual <= state.STOP_LOSS_PERCENT) {
 
