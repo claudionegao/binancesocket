@@ -100,22 +100,6 @@ function vender(state) {
             });
             return;
         }
-        const takeprofit = ((state.PRICE - melhorpreco) / melhorpreco) * 100;
-        if (takeprofit <= state.TAKE_PROFIT_PERCENT && state.positions[index].restante > 0){
-            const quantidadeAVender = state.positions[index].restante;
-            console.log(`Take Profit: Vendendo ${quantidadeAVender} ${state.CRYPTO} a ${state.PRICE} USDT`);
-            state.saldoUSD += quantidadeAVender * state.PRICE;
-            state.saldo -= quantidadeAVender;
-            // identificar o lote e remover da lista de posições
-            state.positions = state.positions.filter((pos) => pos.identificador !== identificador);
-            state.movimentacoes_de_lote.push({
-                tipo: 'take profit',
-                quantidade: quantidadeAVender,
-                precoVenda: state.PRICE,
-                timestamp: Date.now(),
-            });
-            return;
-        }
     });
 }
 // compra será sempre em 5% do saldo USD
