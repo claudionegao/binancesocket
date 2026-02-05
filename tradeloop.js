@@ -37,23 +37,24 @@ function TradeLoop(state= _state, price, io) {
         if (lote.melhorpreco < price){
             lote.melhorpreco = price
         }
+        const takeprofit = ((state.PRICE - lote.melhorpreco) / lote.melhorpreco) * 100;
+        if (takeprofit <= state.TAKE_PROFIT_PERCENT){
+            const quantidadeAVender = lote.restante;
+            console.log(`Take Profit: Vendendo ${quantidadeAVender} ${state.CRYPTO} a ${state.PRICE} USDT porque o preço caiu ${takeprofit.toFixed(2)}% em relação ao melhor preço de venda`);
+            state.saldoUSD += quantidadeAVender * state.PRICE;
+            state.saldo -= quantidadeAVender;
+            // identificar o lote e remover da lista de posições
+            state.positions = state.positions.filter((pos) => pos.identificador !== identificador);
+            state.movimentacoes_de_lote.push({
+                tipo: 'take profit',
+                quantidade: quantidadeAVender,
+                precoVenda: state.PRICE,
+                timestamp: Date.now(),
+            });
+            return;
+        }
     })
-    const takeprofit = ((state.PRICE - melhorpreco) / melhorpreco) * 100;
-    if (takeprofit <= state.TAKE_PROFIT_PERCENT){
-        const quantidadeAVender = state.positions[index].restante;
-        console.log(`Take Profit: Vendendo ${quantidadeAVender} ${state.CRYPTO} a ${state.PRICE} USDT porque o preço caiu ${takeprofit.toFixed(2)}% em relação ao melhor preço de venda`);
-        state.saldoUSD += quantidadeAVender * state.PRICE;
-        state.saldo -= quantidadeAVender;
-        // identificar o lote e remover da lista de posições
-        state.positions = state.positions.filter((pos) => pos.identificador !== identificador);
-        state.movimentacoes_de_lote.push({
-            tipo: 'take profit',
-            quantidade: quantidadeAVender,
-            precoVenda: state.PRICE,
-            timestamp: Date.now(),
-        });
-        return;
-    }
+    
 
     io.emit('state', state);    
 }
