@@ -3,23 +3,23 @@ const paracima = {precoaocruzar:0,cruzou:false};
 const parabaixo = {precoaocruzar:0,cruzou:false};
 
 function avaliarRegras(state = _state) {
-    if (cruzouPraCima()) {
+    if (cruzouPraCima(state)) {
     console.log(`🚀 Cruzou pra cima! Comprar ${state.CRYPTO}`);
     return 'compra';
     }
 
-    if (cruzouPraBaixo()) {
+    if (cruzouPraBaixo(state)) {
         console.log(`🔻 Cruzou pra baixo! Vender ${state.CRYPTO}`);
         return 'venda';
     }
-    if (avaliarStopLoss()){
+    if (avaliarStopLoss(state)){
       console.log('😭 Stoploss detectado, Vender lote')
       return 'venda';
     }
     return null;
 }
 
-function cruzouPraCima() {
+function cruzouPraCima(state) {
   if (state.prev_MEDIA_RAPIDA === null || state.prev_MEDIA_LENTA === null) {
     return false;
   }
@@ -54,7 +54,7 @@ function cruzouPraCima() {
   return false;
 }
 
-function cruzouPraBaixo() {
+function cruzouPraBaixo(state) {
   if (state.prev_MEDIA_RAPIDA === null || state.prev_MEDIA_LENTA === null) {
     return false;
   }
@@ -90,7 +90,7 @@ function cruzouPraBaixo() {
   return false;
 }
 
-function avaliarStopLoss() {
+function avaliarStopLoss(state) {
   if (!state.positions || state.positions.length === 0) return false;
 
   for (const lote of state.positions) {
