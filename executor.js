@@ -104,7 +104,6 @@ function vender(state) {
         if (takeprofit <= state.TAKE_PROFIT_PERCENT && state.positions[index].restante > 0){
             const quantidadeAVender = state.positions[index].restante;
             console.log(`Take Profit: Vendendo ${quantidadeAVender} ${state.CRYPTO} a ${state.PRICE} USDT`);
-
             state.saldoUSD += quantidadeAVender * state.PRICE;
             state.saldo -= quantidadeAVender;
             // identificar o lote e remover da lista de posições
