@@ -33,6 +33,11 @@ function TradeLoop(state= _state, price, io) {
     
     const acao = avaliarRegras(state);
     executarIntencoes(state,acao);
+    state.positions.forEach((lote) => {
+        if (lote.melhorpreco < price){
+            lote.melhorpreco = price
+        }
+    })
 
     io.emit('state', state);    
 }

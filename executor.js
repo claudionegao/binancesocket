@@ -13,7 +13,7 @@ function vender(state) {
     // primeira venda do lote apenas caso 1% de lucro vendendo 33% do total comprado do lote, segunda venda do lote apenas com 4% de lucro vendendo mais 33% do total comprado do lote, venda final do lote com 7% de lucro vendendo o restante do lote
     const lotes = state.positions
     lotes.forEach((lote) => {
-        const {precoCompra, identificador } = lote;
+        const {precoCompra, identificador, melhorpreco } = lote;
         const index = state.positions.findIndex((pos) => pos.identificador === identificador);
         if (index === -1) return;
         // verificar se ultima venda foi feita a menos de state.COOLDOWN_LOTES segundos
@@ -85,7 +85,7 @@ function vender(state) {
             return;
         }
         // stop loss caso o preço de compra estiver 0,22% menor que o preço atual
-        if (lucroPercentual <= -0.22 && state.positions[index].restante > 0) {
+        if (lucroPercentual <= state.STOP_LOSS_PERCENT && state.positions[index].restante > 0) {
             const quantidadeAVender = state.positions[index].restante;
             console.log(`Stop Loss: Vendendo ${quantidadeAVender} ${state.CRYPTO} a ${state.PRICE} USDT`);
             state.saldoUSD += quantidadeAVender * state.PRICE;
@@ -94,6 +94,22 @@ function vender(state) {
             state.positions = state.positions.filter((pos) => pos.identificador !== identificador);
             state.movimentacoes_de_lote.push({
                 tipo: 'stop loss',
+                quantidade: quantidadeAVender,
+                precoVenda: state.PRICE,
+                timestamp: Date.now(),
+            });
+            return;
+        }
+        const takeprofit = ((melhorpreco - precoCompra) / precoCompra) * 100;
+        if (takeprofit <= state.STOP_LOSS_PERCENT - 0.8 && state.positions[index].restante > 0){
+            const quantidadeAVender = state.positions[index].restante;
+            console.log(`Stop Loss: Vendendo ${quantidadeAVender} ${state.CRYPTO} a ${state.PRICE} USDT`);
+            state.saldoUSD += quantidadeAVender * state.PRICE;
+            state.saldo -= quantidadeAVender;
+            // identificar o lote e remover da lista de posições
+            state.positions = state.positions.filter((pos) => pos.identificador !== identificador);
+            state.movimentacoes_de_lote.push({
+                tipo: 'take profit',
                 quantidade: quantidadeAVender,
                 precoVenda: state.PRICE,
                 timestamp: Date.now(),
@@ -124,6 +140,7 @@ function comprar(state) {
         precoCompra: state.PRICE,
         vendasrealizadas: 0,
         ultimavenda: null,
+        melhorpreco: state.PRICE,
     });
     state.movimentacoes_de_lote.push({
         tipo: 'compra',
