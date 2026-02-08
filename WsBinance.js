@@ -26,6 +26,7 @@ function connect(crypto="btcusdt",callback) {
 
   ws.on('close', () => {
     console.log('Conexão caiu');
+    connect(crypto,callback)
   });
 }
 
